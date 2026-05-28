@@ -79,6 +79,8 @@ namespace User.ActiveBeltTensioner
             Settings = this.ReadCommonSettings<DeviceSettings>(_settingsName, () => new DeviceSettings());
             Settings.PropertyChanged += OnSettingsChanged;
 
+            IsEnabled = Settings.StartAutomatically;
+
             // Register Actions (For External Control)
             pluginManager.AddAction(
                 actionName: "SABT.ToggleMotors",
