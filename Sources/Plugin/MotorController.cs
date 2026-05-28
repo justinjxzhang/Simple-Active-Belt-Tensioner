@@ -566,7 +566,7 @@ namespace User.ActiveBeltTensioner
         {
             if (_serialPort != null && _serialPort.IsOpen)
             {
-                if (_plugin.Settings.IsEnabled && !IsBusy)
+                if (_plugin.IsEnabled && !IsBusy)
                 {
                     Check();
                 }
@@ -606,7 +606,7 @@ namespace User.ActiveBeltTensioner
 
             EndAction(action);
 
-            if (didConnect && _plugin.Settings.IsEnabled)
+            if (didConnect && _plugin.IsEnabled)
             {
                 Check();
             }
