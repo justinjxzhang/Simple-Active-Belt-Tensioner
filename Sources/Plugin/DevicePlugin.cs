@@ -21,6 +21,8 @@ namespace User.ActiveBeltTensioner
     [PluginName("Simple Active Belt Tensioner")]
     public class DevicePlugin : IPlugin, IDataPlugin, IWPFSettingsV2
     {
+        const string IsEnabledPropertyName = "IsEnabled";
+
         public DeviceSettings Settings;
 
         public PluginManager PluginManager { get; set; }
@@ -28,7 +30,6 @@ namespace User.ActiveBeltTensioner
         public ImageSource PictureIcon => this.ToIcon(Properties.Resources.MenuIcon);
 
         public string LeftMenuTitle => SLoc.GetValue("SABT_Plugin");
-
 
         public MotorController MotorController;
 
@@ -44,6 +45,7 @@ namespace User.ActiveBeltTensioner
         private volatile bool _runControlLoop = false;
         private volatile bool _hasBeenInactive = true;
         private volatile bool _hasBypassedActivationWarning = false;
+        private volatile bool _isEnabled = false;
 
         public struct TelemetrySnapshot
         {
@@ -53,6 +55,14 @@ namespace User.ActiveBeltTensioner
             public double? Speed;
             public bool DidUpshift;
             public bool IsActive;
+        }
+
+        public bool IsEnabled {
+            get => _isEnabled;
+            set {
+                _isEnabled = value;
+                OnSettingsChanged(this, new PropertyChangedEventArgs(IsEnabledPropertyName));
+            } 
         }
 
         public System.Windows.Controls.Control GetWPFSettingsControl(PluginManager pluginManager)
@@ -75,7 +85,7 @@ namespace User.ActiveBeltTensioner
                 actionStart: (PluginManager manager, string input) => {
                     Logging.Current.Info("SABT: Toggling motors from external input");
                     _hasBypassedActivationWarning = false;
-                    Settings.IsEnabled = !Settings.IsEnabled;
+                    IsEnabled = !IsEnabled;
                 }
             );
 
@@ -83,14 +93,14 @@ namespace User.ActiveBeltTensioner
                 actionName: "SABT.ToggleMotorsWithoutWarning",
                 actionStart: (PluginManager manager, string input) => {
                     Logging.Current.Info("SABT: Toggling motors from external input (without warning)");
-                    _hasBypassedActivationWarning = Settings.IsEnabled ? false : true;
-                    Settings.IsEnabled = !Settings.IsEnabled;
+                    _hasBypassedActivationWarning = IsEnabled ? false : true;
+                    IsEnabled = !IsEnabled;
                 }
             );
 
             // Initialise Motor Controller
             MotorController = new MotorController(this);
-            if (Settings.IsEnabled && Settings.IsSerialPortValid)
+            if (IsEnabled && Settings.IsSerialPortValid)
             {
                 DoWithoutWaiting(devicePlugin =>
                 {
@@ -118,10 +128,10 @@ namespace User.ActiveBeltTensioner
         {
             if (
                 e.PropertyName == nameof(Settings.SerialPort) ||
-                e.PropertyName == nameof(Settings.IsEnabled)
+                e.PropertyName == IsEnabledPropertyName
             )
             {
-                if (Settings.IsEnabled)
+                if (IsEnabled)
                 {
                     if (Settings.IsSerialPortValid)
                     {
@@ -158,7 +168,7 @@ namespace User.ActiveBeltTensioner
         /// <summary>Called by SimHub when new telemetry data is available</summary>
         public void DataUpdate(PluginManager pluginManager, ref GameData data)
         {
-            if (!Settings.IsEnabled) { return; }
+            if (!IsEnabled) { return; }
 
             short oldGear = 0;
             short newGear = 0;
@@ -194,7 +204,7 @@ namespace User.ActiveBeltTensioner
 
         /// <summary>Called by SimHub when the plugin is unloaded, allowing the graceful release of connections and resources</summary>
         public void End(PluginManager pluginManager)
-        {
+        {   
             this.SaveCommonSettings(_settingsName, Settings);
 
             _runControlLoop = false;
@@ -222,7 +232,7 @@ namespace User.ActiveBeltTensioner
 
                 _hasTelemetryArrived.WaitOne();
 
-                if (!Settings.IsEnabled)
+                if (!IsEnabled)
                 {
                     _hasBeenInactive = true;
 
@@ -259,7 +269,7 @@ namespace User.ActiveBeltTensioner
 
                         if (result != MessageBoxResult.Yes)
                         {
-                            Settings.IsEnabled = false;
+                            IsEnabled = false;
 
                             continue;
                         }
@@ -394,7 +404,7 @@ namespace User.ActiveBeltTensioner
                                 MessageBoxImage.Warning
                             );
 
-                            Settings.IsEnabled = false;
+                            IsEnabled = false;
                         }
                     }
                 }

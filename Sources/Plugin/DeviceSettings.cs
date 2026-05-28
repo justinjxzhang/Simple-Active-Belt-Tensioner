@@ -30,20 +30,6 @@ namespace User.ActiveBeltTensioner
             }
         }
 
-        private bool _isEnabled = false;
-        public bool IsEnabled
-        {
-            get { return _isEnabled; }
-            set
-            {
-                if (_isEnabled != value)
-                {
-                    _isEnabled = value;
-                    InvokePropertyChange(nameof(IsEnabled));
-                }
-            }
-        }
-
         private bool _startAutomatically = false;
         public bool StartAutomatically
         {
