@@ -19,7 +19,7 @@ namespace User.ActiveBeltTensioner
     [PluginDescription("A control panel for the 'Simple Active Belt Tensioner'")]
     [PluginAuthor("George Wilkins")]
     [PluginName("Simple Active Belt Tensioner")]
-    public class DevicePlugin : IPlugin, IDataPlugin, IWPFSettingsV2
+    public class DevicePlugin : IPlugin, IDataPlugin, IWPFSettingsV2, IReusable
     {
         const string IsEnabledPropertyName = "IsEnabled";
 
@@ -598,6 +598,12 @@ namespace User.ActiveBeltTensioner
             TelemetryGraphModel.Series.Add(series);
 
             return series;
+        }
+
+        public void FinalizePlugin()
+        {
+            // Do nothing here because we're already doing the cleanup in End
+            Logging.Current.Info($"SABT: Finalizing plugin");
         }
     }
 }
