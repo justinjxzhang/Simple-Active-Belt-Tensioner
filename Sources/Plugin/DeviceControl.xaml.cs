@@ -27,7 +27,6 @@ namespace User.ActiveBeltTensioner
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
 
-            _plugin.Settings.IsEnabled = (_plugin.Settings.IsEnabled && _plugin.Settings.StartAutomatically);
             _plugin.Settings.PropertyChanged += OnPropertyChanged;
 
             _updateSerialPortsTimer = new DispatcherTimer
@@ -52,7 +51,8 @@ namespace User.ActiveBeltTensioner
             DataContext = new DeviceViewModel(
                 _plugin.Settings,
                 _plugin.MotorController,
-                _plugin.TelemetryGraphModel
+                _plugin.TelemetryGraphModel,
+                _plugin
             );
 
             _plugin.DoWithoutWaiting(
